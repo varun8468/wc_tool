@@ -2,16 +2,20 @@ const fs = require("fs");
 
 const args = process.argv;
 
-if (
-    args.length !== 4 ||
-    (args[2] !== "-c" && args[2] !== "-l" && args[2] !== "-w" && args[2] !== "-m")
-) {
-    console.error("Usage: node ccwc.js -c");
+console.log(args.length)
+
+if (args.length < 3 || args.length > 4) {
+    console.error("Usage: node ccwc.js [-c|-l|-w|-m] filename");
     process.exit(1);
 }
 
-const option = args[2];
-const fileName = args[3];
+const option = args.length === 4 ? args[2] : null;
+const fileName = args.length === 4 ? args[3] : args[2];
+
+if (option && !["-c", "-l", "-w", "-m"].includes(option)) {
+    console.error("Invalid option. Usage: node ccwc.js [-c|-l|-w|-m] filename");
+    process.exit(1);
+}
 
 fs.readFile(fileName, "utf-8", (err, data) => {
     if (err) {
@@ -21,10 +25,12 @@ fs.readFile(fileName, "utf-8", (err, data) => {
     let byteCount = 0,
         numberOfLines = 0,
         numberOfWords = 0,
-        characterCount = 0
+        characterCount = 0;
+    const trimmedText = data.trim();
+    const wordArray = trimmedText.split(/\s+/);
     switch (option) {
         case "-c":
-            byteCount = Buffer.byteLength(data, 'utf-8')
+            byteCount = Buffer.byteLength(data, "utf-8");
             console.log(`${byteCount} ${fileName}`);
             break;
         case "-l":
@@ -32,8 +38,6 @@ fs.readFile(fileName, "utf-8", (err, data) => {
             console.log(`${numberOfLines} ${fileName}`);
             break;
         case "-w":
-            const trimmedText = data.trim();
-            const wordArray = trimmedText.split(/\s+/);
             numberOfWords = wordArray.length;
             console.log(`${numberOfWords} ${fileName}`);
             break;
@@ -42,8 +46,12 @@ fs.readFile(fileName, "utf-8", (err, data) => {
             console.log(`${characterCount} ${fileName}`);
             break;
         default:
-            console.error("Invalid option");
-            process.exit(1)
-
+            byteCount = Buffer.byteLength(data, "utf-8");
+            numberOfLines = data.split("\n").length;
+            numberOfWords = wordArray.length;
+            characterCount = data.length;
+            console.log(
+                `${byteCount} ${numberOfLines} ${numberOfWords} ${characterCount} ${fileName}`
+            );
     }
 });
